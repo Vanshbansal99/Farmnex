@@ -29,7 +29,6 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
 
 # Symbolication related
 app.*.symbols
@@ -41,30 +40,3 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-# Flutter
-.dart_tool/
-.packages
-.pub/
-build/
-
-# Android
-android/.gradle/
-android/app/build/
-
-# iOS
-ios/Pods/
-
-# VSCode
-.vscode/
-
-# macOS
-.DS_Store
-
-# Node.js
-node_modules/
-server/node_modules/
-server/uploads/
-server/data/catalogues.json
-server/data/products.json
-.env
-server/.env
