@@ -1,0 +1,120 @@
+[
+  {
+    "name": "newww",
+    "imageUrl": "/uploads/catalogues/image-1778338949581.png",
+    "parts": [
+      {
+        "id": "1778338947662",
+        "name": "de",
+        "partNumber": "2121",
+        "price": 1212,
+        "description": "12wdw",
+        "category": "Engine",
+        "xFraction": 0.5928266906738281,
+        "yFraction": 0.7656608072916666
+      }
+    ],
+    "createdAt": "2026-05-09T15:02:29.598Z",
+    "_id": "1778338949633"
+  },
+  {
+    "name": "test1",
+    "imageUrl": "/uploads/catalogues/image-1778338325577.png",
+    "parts": [
+      {
+        "id": "1778338288129",
+        "name": "123",
+        "partNumber": "1221",
+        "price": 121212,
+        "description": "12wsdf",
+        "category": "Transmission",
+        "xFraction": 0.6358541870125282,
+        "yFraction": 0.7294921874983822
+      }
+    ],
+    "createdAt": "2026-05-09T14:52:05.594Z",
+    "_id": "1778338325605"
+  },
+  {
+    "name": "qwsax",
+    "imageUrl": "/uploads/catalogues/image-1778338170001.png",
+    "parts": [
+      {
+        "id": "1778338152572",
+        "name": "nut jam",
+        "partNumber": "asd",
+        "price": 12,
+        "description": "1221",
+        "category": "Electrical",
+        "xFraction": 0.6218067783949978,
+        "yFraction": 0.5723173422515545
+      }
+    ],
+    "createdAt": "2026-05-09T14:49:30.004Z",
+    "_id": "1778338170010"
+  },
+  {
+    "name": "test",
+    "imageUrl": "/uploads/catalogues/image-1778337496755.png",
+    "parts": [
+      {
+        "name": "123",
+        "partNumber": "132",
+        "price": 13,
+        "description": "1wes",
+        "xFraction": 0.720084567334666,
+        "yFraction": 0.21397638022000706
+      }
+    ],
+    "createdAt": "2026-05-09T14:38:16.762Z",
+    "_id": "1778337496789"
+  },
+  {
+    "name": "garvit",
+    "imageUrl": "/uploads/catalogues/image-1778336897774.png",
+    "parts": [
+      {
+        "name": "garvut",
+        "partNumber": "1133",
+        "price": 12323,
+        "description": "asdfgbdz",
+        "xFraction": 0.6522636413574219,
+        "yFraction": 0.6268263720961474
+      }
+    ],
+    "createdAt": "2026-05-09T14:28:17.779Z",
+    "_id": "1778336897793"
+  },
+  {
+    "name": "wew",
+    "imageUrl": "/uploads/catalogues/image-1778336501623.png",
+    "parts": [
+      {
+        "name": "sfers",
+        "partNumber": "fs",
+        "price": 1234,
+        "description": "wefw",
+        "xFraction": 0.8972741989862352,
+        "yFraction": 0.39201032043134093
+      }
+    ],
+    "createdAt": "2026-05-09T14:21:41.641Z",
+    "_id": "1778336501657"
+  },
+  {
+    "name": "new",
+    "imageUrl": "/uploads/catalogues/image-1778336112154.png",
+    "parts": [
+      {
+        "name": "q3",
+        "partNumber": "121",
+        "price": 1212,
+        "description": "12wsa",
+        "xFraction": 0.6301994929237972,
+        "yFraction": 0.603445709067047
+      }
+    ],
+    "createdAt": "2026-05-09T14:15:12.183Z",
+    "_id": "1778336112236"
+  }
+]
