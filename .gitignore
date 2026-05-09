@@ -41,3 +41,21 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+# Flutter
+.dart_tool/
+.packages
+.pub/
+build/
+
+# Android
+android/.gradle/
+android/app/build/
+
+# iOS
+ios/Pods/
+
+# VSCode
+.vscode/
+
+# macOS
+.DS_Store
