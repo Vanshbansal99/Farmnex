@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 class ApiConstants {
   // Switch between Local and Production URLs automatically
   static const String localUrl = 'http://127.0.0.1:5000/api';
-  static const String productionUrl = 'https://farmnex-api.vercel.app/api'; // REPLACE with your Vercel URL
+  static const String productionUrl = 'https://farmnex1-56dpzlk2y-souravs-projects-44202074.vercel.app/api'; 
 
   static String get baseUrl => kReleaseMode ? productionUrl : localUrl;
   
