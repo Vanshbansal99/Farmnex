@@ -7,10 +7,10 @@ require('dotenv').config();
 
 const app = express();
 
-// Middleware
+// 🛡️ Standard Production Middleware
 app.use(express.json());
 app.use(cors({
-    origin: '*',
+    origin: '*', // For production, replace with your specific Vercel frontend URL
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -20,24 +20,33 @@ app.use(helmet({
 }));
 app.use(morgan('dev'));
 
-// Detailed Request Logger
-app.use((req, res, next) => {
-    console.log(`🌐 ${req.method} ${req.url}`);
+// 📡 MongoDB Connection Manager (Serverless Optimized)
+const connectDB = async () => {
+    if (mongoose.connection.readyState >= 1) return;
+    
+    try {
+        const MONGO_URI = process.env.MONGO_URI;
+        if (!MONGO_URI) throw new Error('MONGO_URI is missing in environment variables');
+        
+        await mongoose.connect(MONGO_URI);
+        console.log('✅ Connected to MongoDB Atlas');
+    } catch (err) {
+        console.error('❌ MongoDB Connection Error:', err.message);
+    }
+};
+
+// Ensure DB is connected for every request
+app.use(async (req, res, next) => {
+    await connectDB();
     next();
 });
 
-// MongoDB Connection
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/farmnex';
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('✅ Connected to MongoDB'))
-    .catch((err) => console.error('❌ MongoDB Connection Error:', err));
-
-// Routes
+// 🛣️ Standard Route Definitions
 app.get('/', (req, res) => {
-    res.json({ message: 'Welcome to FarmNex API' });
+    res.json({ status: 'Online', platform: 'FarmNex API', version: '1.0.0' });
 });
 
-// Static path for uploads
+// Static path for legacy uploads (Note: Cloudinary preferred for production)
 const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -48,19 +57,23 @@ app.use('/api/orders', require('./routes/orderRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/catalogues', require('./routes/catalogueRoutes'));
 
-// Error Handling Middleware
+// 🚨 Global Error Handler (Professional Standard)
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Something went wrong!' });
+    console.error(`💥 Error: ${err.message}`);
+    res.status(err.status || 500).json({
+        success: false,
+        message: err.message || 'Internal Server Error',
+        stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
 });
 
+// 🚀 Local Startup (Only runs during development)
 const PORT = process.env.PORT || 5000;
-
-// Export for Vercel
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
-        console.log(`🚀 Server running on port ${PORT}`);
+        console.log(`📡 Local Dev Server: http://localhost:${PORT}`);
     });
 }
 
+// ☁️ Cloud Export
 module.exports = app;
