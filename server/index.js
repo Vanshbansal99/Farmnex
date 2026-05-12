@@ -3,21 +3,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
 
 const app = express();
-
-// 🛡️ Ensure Upload Directories Exist (Prevents "Directory Not Found" Crashes)
-const uploadDirs = ['uploads', 'uploads/products', 'uploads/catalogues'];
-uploadDirs.forEach(dir => {
-    const fullPath = path.join(__dirname, dir);
-    if (!fs.existsSync(fullPath)) {
-        fs.mkdirSync(fullPath, { recursive: true });
-        console.log(`📁 Created directory: ${dir}`);
-    }
-});
 
 // 🛡️ Standard Production Middleware
 app.use(express.json());
@@ -32,39 +21,67 @@ app.use(helmet({
 }));
 app.use(morgan('dev'));
 
-// 📡 MongoDB Connection Manager (Serverless Optimized)
+// 📡 MongoDB Connection Manager (Hardened & Fast-Fail)
+let cachedDb = null;
+let connectionError = null;
+
 const connectDB = async () => {
-    if (mongoose.connection.readyState >= 1) return;
+    // If already connected, return
+    if (mongoose.connection.readyState === 1) return;
     
+    // If currently connecting, wait for it
+    if (mongoose.connection.readyState === 2) return;
+
+    const MONGO_URI = process.env.MONGO_URI;
+    if (!MONGO_URI) {
+        connectionError = 'MONGO_URI is missing';
+        return;
+    }
+
     try {
-        const MONGO_URI = process.env.MONGO_URI;
-        if (!MONGO_URI) throw new Error('MONGO_URI is missing in environment variables');
-        
+        console.log('📡 Attempting to connect to MongoDB Atlas...');
         await mongoose.connect(MONGO_URI, {
-            serverSelectionTimeoutMS: 5000, // Timeout after 5s
+            serverSelectionTimeoutMS: 5000, // Fail fast after 5s instead of 10s
+            connectTimeoutMS: 10000,
+            family: 4 // Force IPv4 (Fixes many DNS issues on Vercel/Local)
         });
-        console.log('✅ Connected to MongoDB Atlas');
+        console.log('✅ MongoDB Atlas Connected Successfully');
+        connectionError = null;
     } catch (err) {
-        console.error('❌ MongoDB Connection Error:', err.message);
+        connectionError = err.message;
+        console.error('❌ MongoDB Connection Critical Error:', err.message);
+        throw err; // Let the middleware catch it
     }
 };
 
-// Ensure DB is connected for every request
+// 🛡️ Smooth Onboarding Middleware: Check DB Health before every request
 app.use(async (req, res, next) => {
     try {
+        // Skip DB check for the root health check route
+        if (req.url === '/') return next();
+        
         await connectDB();
         next();
     } catch (err) {
-        res.status(503).json({ error: 'Database connection failed' });
+        console.error('🛑 Request Blocked: Database Unavailable');
+        res.status(503).json({ 
+            success: false, 
+            message: 'Database connection is temporarily unavailable. Please check IP whitelisting.',
+            error: err.message
+        });
     }
 });
 
 // 🛣️ Standard Route Definitions
 app.get('/', (req, res) => {
-    res.json({ status: 'Online', platform: 'FarmNex API', uptime: process.uptime() });
+    res.json({ 
+        status: 'Online', 
+        db_status: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected',
+        platform: 'FarmNex Cloud API'
+    });
 });
 
-// Static path for uploads
+// Static path for existing assets (Read-Only)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API Routes
@@ -76,24 +93,18 @@ app.use('/api/catalogues', require('./routes/catalogueRoutes'));
 
 // 🚨 Global Error Handler
 app.use((err, req, res, next) => {
-    console.error(`💥 [ERROR] ${req.method} ${req.url} - ${err.message}`);
+    console.error(`💥 [CRITICAL] ${req.method} ${req.url} - ${err.message}`);
     res.status(err.status || 500).json({
         success: false,
         message: err.message || 'Internal Server Error',
     });
 });
 
-// 🚀 Start Logic
+// 🚀 Startup Logic
 const PORT = process.env.PORT || 5000;
 if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => {
-        console.log(`📡 Server Active: http://localhost:${PORT}`);
-    }).on('error', (err) => {
-        if (err.code === 'EADDRINUSE') {
-            console.error(`⚠️ Port ${PORT} is busy. Try another port.`);
-        } else {
-            console.error('❌ Startup Error:', err);
-        }
+        console.log(`📡 Local Dev: http://localhost:${PORT}`);
     });
 }
 

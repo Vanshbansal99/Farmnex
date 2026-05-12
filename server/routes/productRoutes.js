@@ -7,9 +7,9 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 
-// Hybrid Storage Strategy: Use Cloudinary if keys exist, else use Local Storage
+// Cloud-Strict Storage Strategy: Force Cloudinary in production, fallback to local only in dev
 let upload;
-if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
+if (process.env.NODE_ENV === 'production' || (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY)) {
     upload = cloudinaryUpload;
 } else {
     // Set up local multer for product image uploads (Development Fallback)

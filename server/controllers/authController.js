@@ -17,7 +17,19 @@ exports.registerUser = async (req, res) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
-        const user = await User.create({ name, email, password, role: role || 'buyer' });
+        // 🛡️ Master Admin Logic: Automatically promote the owner's email to admin
+        let userRole = role || 'buyer';
+        if (email.toLowerCase() === 'vanshbansal99@gmail.com') {
+            userRole = 'admin';
+            console.log('👑 Master Admin detected: Promoting to admin role');
+        }
+
+        const user = await User.create({ 
+            name, 
+            email, 
+            password, 
+            role: userRole 
+        });
         if (user) {
             console.log('✅ Signup Success:', email);
             res.status(201).json({
@@ -49,6 +61,14 @@ exports.authUser = async (req, res) => {
 
         if (await user.comparePassword(password)) {
             console.log('✅ Login Success:', email);
+            
+            // 🛡️ Auto-promote owner to admin on login if not already
+            if (email.toLowerCase() === 'vanshbansal99@gmail.com' && user.role !== 'admin') {
+                user.role = 'admin';
+                await user.save();
+                console.log('👑 Owner auto-promoted to admin on login');
+            }
+
             res.json({
                 _id: user._id,
                 name: user.name,

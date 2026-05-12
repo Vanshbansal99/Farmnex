@@ -7,8 +7,8 @@ const protect = async (req, res, next) => {
         try {
             token = req.headers.authorization.split(' ')[1];
             
-            // Bypass for mock development tokens
-            if (token.startsWith('mock-token-')) {
+            // Bypass for mock development tokens (Only in Local Dev)
+            if (token.startsWith('mock-token-') && process.env.NODE_ENV !== 'production') {
                 const role = token.split('-')[2] || 'buyer';
                 req.user = { _id: 'mock-id', role: role, name: 'Mock User' };
                 return next();
