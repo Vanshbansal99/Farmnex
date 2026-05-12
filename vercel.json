@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "name": "farmnex-backend",
+  "builds": [
+    {
+      "src": "server/index.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "server/index.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
