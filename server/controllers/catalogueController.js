@@ -55,12 +55,19 @@ const createCatalogue = async (req, res) => {
             return res.status(400).json({ message: 'Please upload an image' });
         }
 
-        const imageUrl = `/uploads/catalogues/${req.file.filename}`;
+        const imageUrl = req.file.path.startsWith('http') 
+            ? req.file.path 
+            : `/uploads/catalogues/${req.file.filename}`;
 
         let parsedParts = [];
         if (parts) {
             try {
-                parsedParts = typeof parts === 'string' ? JSON.parse(parts) : parts;
+                const rawParts = typeof parts === 'string' ? JSON.parse(parts) : parts;
+                // Map 'id' from frontend to 'partId' for MongoDB schema compatibility
+                parsedParts = rawParts.map(p => ({
+                    ...p,
+                    partId: p.id || Date.now().toString()
+                }));
             } catch (e) {
                 return res.status(400).json({ message: 'Invalid parts format' });
             }
@@ -88,15 +95,17 @@ const createCatalogue = async (req, res) => {
                         price: part.price,
                         category: part.category || 'General',
                         brand: 'FarmNex',
-                        stock: 10, // Default stock
-                        images: [imageUrl] // Use catalogue image as default
+                        stock: 10,
+                        isFeatured: true, // Mark as featured for home screen visibility
+                        images: [imageUrl]
                     });
                 }
             }
 
             res.status(201).json(createdCatalogue);
         } catch (dbError) {
-            console.log('⚠️ MongoDB down, falling back to JSON storage for POST');
+            console.error('❌ MongoDB Catalogue Save Error:', dbError);
+            console.log('⚠️ MongoDB error, falling back to JSON storage for POST');
             const mockCatalogue = { ...catalogueData, _id: Date.now().toString() };
             writeMockCatalogue(mockCatalogue);
             
@@ -119,6 +128,7 @@ const createCatalogue = async (req, res) => {
                             category: part.category || 'General',
                             brand: 'FarmNex',
                             stock: 10,
+                            isFeatured: true,
                             images: [imageUrl],
                             createdAt: new Date()
                         });
@@ -137,7 +147,36 @@ const createCatalogue = async (req, res) => {
     }
 };
 
+// @desc    Delete a catalogue (Admin)
+// @route   DELETE /api/catalogues/:id
+const deleteCatalogue = async (req, res) => {
+    try {
+        try {
+            const catalogue = await Catalogue.findByIdAndDelete(req.params.id);
+            if (catalogue) return res.json({ message: 'Catalogue removed' });
+        } catch (dbError) {
+            let catalogues = readMockCatalogues();
+            const initialLength = catalogues.length;
+            // Correctly exclude the catalogue being deleted
+            catalogues = catalogues.filter(c => {
+                const cId = (c._id || c.id || '').toString();
+                return cId !== req.params.id;
+            });
+            
+            if (catalogues.length < initialLength) {
+                fs.writeFileSync(MOCK_DB_PATH, JSON.stringify(catalogues, null, 2));
+                return res.json({ message: 'Catalogue removed' });
+            }
+        }
+        res.status(404).json({ message: 'Catalogue not found' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getCatalogues,
-    createCatalogue
+    createCatalogue,
+    deleteCatalogue
 };

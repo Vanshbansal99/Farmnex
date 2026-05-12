@@ -9,9 +9,22 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
-app.use(helmet());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(helmet({
+    crossOriginResourcePolicy: false,
+    contentSecurityPolicy: false
+}));
 app.use(morgan('dev'));
+
+// Detailed Request Logger
+app.use((req, res, next) => {
+    console.log(`🌐 ${req.method} ${req.url}`);
+    next();
+});
 
 // MongoDB Connection
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/farmnex';

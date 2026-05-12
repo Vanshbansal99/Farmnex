@@ -26,13 +26,15 @@ void main() {
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  // Only watch the token and user role to prevent the router from rebuilding on every state change (like isLoading)
+  final token = ref.watch(authProvider.select((s) => s.token));
+  final userRole = ref.watch(authProvider.select((s) => s.user?['role']));
   
   return GoRouter(
     initialLocation: '/',
     redirect: (context, state) {
-      final isLoggedIn = authState.token != null;
-      final isAdmin = authState.user?['role'] == 'admin';
+      final isLoggedIn = token != null;
+      final isAdmin = userRole == 'admin';
       final isGoingToAdmin = state.matchedLocation.startsWith('/admin');
       final isGoingToLogin = state.matchedLocation == '/login';
       final isGoingToSignup = state.matchedLocation == '/signup';

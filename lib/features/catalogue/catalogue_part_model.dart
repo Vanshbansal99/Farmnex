@@ -65,11 +65,17 @@ class Catalogue {
   factory Catalogue.fromJson(Map<String, dynamic> json) {
     var partsList = json['parts'] as List? ?? [];
     List<CataloguePart> parts = partsList.map((i) => CataloguePart.fromJson(i)).toList();
+    String imageUrl = json['imageUrl'] ?? '';
+    if (imageUrl.startsWith('/uploads')) {
+      // We don't have direct access to ApiConstants here, but we can assume relative path
+      // The screen usually handles the full URL, but let's be safe and just pass it through
+      // as the screen in catalogue_screen.dart already handles serverUrl prepending.
+    }
     
     return Catalogue(
-      id: json['_id'] ?? '',
+      id: json['_id'] ?? json['id'] ?? '',
       name: json['name'] ?? '',
-      imageUrl: json['imageUrl'] ?? '',
+      imageUrl: imageUrl,
       parts: parts,
     );
   }

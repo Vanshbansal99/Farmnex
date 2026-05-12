@@ -84,10 +84,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildAppBar() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isLargeScreen = MediaQuery.of(context).size.width > 900;
+    // Dynamic height: 70% of screen on mobile, 600px on large screens to avoid overflow
+    final heroHeight = isLargeScreen ? 650.0 : screenHeight * 0.7;
+
     return SliverAppBar(
       floating: false,
       pinned: false,
-      expandedHeight: 500,
+      expandedHeight: heroHeight,
       elevation: 0,
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
@@ -168,9 +173,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildHeroSection() {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isLargeScreen = MediaQuery.of(context).size.width > 900;
+    final heroHeight = isLargeScreen ? 650.0 : screenHeight * 0.7;
+
     return ClipRect(
       child: SizedBox(
-        height: 500,
+        height: heroHeight,
         width: double.infinity,
         child: Stack(
           children: [
@@ -216,111 +225,115 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
 
             // Content
-            Positioned(
-              bottom: 60,
-              left: 24,
-              right: 24,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Premium Tag
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.accentYellow,
-                      borderRadius: BorderRadius.circular(4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.accentYellow.withOpacity(0.3),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      'PREMIUM QUALITY',
-                      style: GoogleFonts.outfit(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 2,
-                        color: AppColors.black,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  // Main Title with shadow for readability
-                  Text(
-                    'Precision Engineering\nfor the Modern Farm',
-                    style: GoogleFonts.outfit(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.white,
-                      height: 1.1,
-                      shadows: [
-                        Shadow(
-                          color: Colors.black.withOpacity(0.5),
-                          offset: const Offset(0, 4),
-                          blurRadius: 10,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Subtitle
-                  SizedBox(
-                    width: 600,
-                    child: Text(
-                      'Discover the world\'s largest marketplace for genuine tractor spare parts and heavy agricultural machinery components.',
-                      style: GoogleFonts.outfit(
-                        fontSize: 18,
-                        color: AppColors.white.withOpacity(0.9),
-                        fontWeight: FontWeight.w300,
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  // Actions
-                  Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () => context.push('/login'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accentYellow,
-                          foregroundColor: AppColors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                          elevation: 10,
-                          shadowColor: AppColors.accentYellow.withOpacity(0.4),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+            Positioned.fill(
+              child: Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 1200),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        SizedBox(height: isLargeScreen ? 80 : 60),
+                      // Premium Tag
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: AppColors.accentYellow,
+                          borderRadius: BorderRadius.circular(4),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.accentYellow.withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
                         ),
                         child: Text(
-                          'EXPLORE PARTS',
-                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.white,
-                          side: const BorderSide(color: AppColors.white, width: 2),
-                          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          'PREMIUM QUALITY',
+                          style: GoogleFonts.outfit(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 2,
+                            color: AppColors.black,
                           ),
                         ),
-                        child: Text(
-                          'WATCH DEMO',
-                          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 24),
+                      // Main Title with shadow for readability
+                      Text(
+                        'Precision Engineering\nfor the Modern Farm',
+                        style: GoogleFonts.outfit(
+                          fontSize: MediaQuery.of(context).size.width > 900 ? 64 : 42,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.white,
+                          height: 1.1,
+                          shadows: [
+                            Shadow(
+                              blurRadius: 20,
+                              color: Colors.black.withOpacity(0.5),
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
                         ),
                       ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Discover the most durable and high-precision spare parts\nfor your tractors and agricultural machinery.',
+                        style: GoogleFonts.outfit(
+                          fontSize: 18,
+                          color: AppColors.white.withOpacity(0.9),
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                      // Actions
+                      Wrap(
+                        spacing: 20,
+                        runSpacing: 16,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () => context.push('/catalogue'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.accentYellow,
+                              foregroundColor: AppColors.black,
+                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                              elevation: 10,
+                              shadowColor: AppColors.accentYellow.withOpacity(0.4),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'EXPLORE CATALOGUE',
+                              style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          OutlinedButton(
+                            onPressed: () {},
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.white,
+                              side: const BorderSide(color: AppColors.white, width: 2),
+                              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'WATCH DEMO',
+                              style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 60),
                     ],
                   ),
-                ],
+                ),
               ),
             ),
+          ),
           ],
         ),
       ),
@@ -397,38 +410,83 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildFeaturedProducts(WidgetRef ref) {
-    final products = ref.watch(adminProductProvider);
+    final allProducts = ref.watch(adminProductProvider);
+    
+    // Phase 1 Logic: Show exactly 4 parts from key categories
+    final List<AdminProduct> phase1Products = [];
+    
+    // 1. One from Tyre category
+    final tyre = allProducts.firstWhere(
+      (p) => p.category.toLowerCase().contains('tyre'),
+      orElse: () => allProducts.isNotEmpty ? allProducts.first : AdminProduct(id: '0', name: 'Premium Tyre', category: 'Tyres', price: 12000, stock: 10, description: ''),
+    );
+    phase1Products.add(tyre);
 
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Featured Products',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              TextButton(onPressed: () {}, child: const Text('See All')),
-            ],
-          ),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: MediaQuery.of(context).size.width > 1200 ? 5 : MediaQuery.of(context).size.width > 800 ? 3 : 2,
-              childAspectRatio: 0.85,
-              crossAxisSpacing: 15,
-              mainAxisSpacing: 15,
+    // 2. One from Maintenance
+    final maintenance = allProducts.firstWhere(
+      (p) => p.category.toLowerCase().contains('maintenance') && !phase1Products.contains(p),
+      orElse: () => allProducts.length > 1 ? allProducts[1] : AdminProduct(id: '1', name: 'Service Kit', category: 'Maintenance', price: 4500, stock: 15, description: ''),
+    );
+    phase1Products.add(maintenance);
+
+    // 3. One from Published Catalogue (looking for 'Part #' or specific keyword)
+    final cataloguePart = allProducts.firstWhere(
+      (p) => p.description.toLowerCase().contains('part #') && !phase1Products.contains(p),
+      orElse: () => allProducts.length > 2 ? allProducts[2] : AdminProduct(id: '2', name: 'Catalogue Part', category: 'Engine', price: 8500, stock: 5, description: ''),
+    );
+    phase1Products.add(cataloguePart);
+
+    // 4. One high-impact Engine/Hydraulic part
+    final enginePart = allProducts.firstWhere(
+      (p) => p.category.toLowerCase().contains('engine') && !phase1Products.contains(p),
+      orElse: () => allProducts.length > 3 ? allProducts[3] : AdminProduct(id: '3', name: 'Precision Engine Part', category: 'Engine', price: 25000, stock: 8, description: ''),
+    );
+    phase1Products.add(enginePart);
+
+    return Center(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Featured Products',
+                  style: GoogleFonts.outfit(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.black,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {},
+                  child: Text(
+                    'See All',
+                    style: GoogleFonts.outfit(color: AppColors.darkGreen, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
             ),
-            itemCount: products.length > 4 ? 4 : products.length,
-            itemBuilder: (context, index) {
-              return _buildProductCard(products[index], ref);
-            },
-          ),
-        ],
+            const SizedBox(height: 20),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: MediaQuery.of(context).size.width > 1200 ? 4 : MediaQuery.of(context).size.width > 800 ? 3 : 2,
+                childAspectRatio: 0.75,
+                crossAxisSpacing: 20,
+                mainAxisSpacing: 20,
+              ),
+              itemCount: phase1Products.length,
+              itemBuilder: (context, index) {
+                return _buildProductCard(phase1Products[index], ref);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -453,13 +511,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           children: [
             Expanded(
               child: Container(
+                width: double.infinity,
                 decoration: BoxDecoration(
                   color: AppColors.lightGray,
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                 ),
-                child: const Center(
-                  child: Icon(Icons.image, color: AppColors.metallicGray, size: 40),
-                ),
+                child: product.image.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                        child: Image.network(
+                          product.image,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Center(
+                            child: Icon(Icons.broken_image_outlined, color: AppColors.metallicGray, size: 40),
+                          ),
+                        ),
+                      )
+                    : const Center(
+                        child: Icon(Icons.image, color: AppColors.metallicGray, size: 40),
+                      ),
               ),
             ),
             Padding(

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/api_service.dart';
 import '../../core/constants/api_constants.dart';
+import 'package:dio/dio.dart';
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(ref.read(apiServiceProvider));
@@ -28,159 +29,103 @@ class AuthState {
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final ApiService _apiService;
-  
-  // Local mock database for development
-  static final List<Map<String, dynamic>> _mockUsers = [
-    {'name': 'Admin User', 'email': 'admin@farmnex.com', 'password': 'admin123', 'role': 'admin'},
-  ];
+  SharedPreferences? _prefs;
 
   AuthNotifier(this._apiService) : super(AuthState()) {
     _init();
   }
 
   Future<void> _init() async {
-    await _loadMockUsers();
+    _prefs = await SharedPreferences.getInstance();
     await _loadToken();
   }
 
-  Future<void> _loadMockUsers() async {
-    final prefs = await SharedPreferences.getInstance();
-    final mockUsersJson = prefs.getStringList('mock_users');
-    if (mockUsersJson != null) {
-      _mockUsers.clear();
-      _mockUsers.addAll([
-        {'name': 'Admin User', 'email': 'admin@farmnex.com', 'password': 'admin123', 'role': 'admin'},
-      ]);
-      for (var userJson in mockUsersJson) {
-        final user = Map<String, dynamic>.from(jsonDecode(userJson));
-        if (!_mockUsers.any((u) => u['email'] == user['email'])) {
-          _mockUsers.add(user);
-        }
-      }
-    }
-  }
-
-  Future<void> _saveMockUsers() async {
-    final prefs = await SharedPreferences.getInstance();
-    final mockUsersJson = _mockUsers
-        .where((u) => u['email'] != 'admin@farmnex.com') // Don't save the default admin
-        .map((u) => jsonEncode(u))
-        .toList();
-    await prefs.setStringList('mock_users', mockUsersJson);
-  }
-
   Future<void> _loadToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
+    final token = _prefs?.getString('token');
     if (token != null) {
-      state = state.copyWith(token: token);
-      // Optionally fetch profile
+      try {
+        final response = await _apiService.get(ApiConstants.profile, 
+          token: token
+        ).timeout(const Duration(seconds: 10));
+        state = state.copyWith(token: token, user: response.data);
+      } catch (e) {
+        // Token might be expired or invalid
+        await _prefs?.remove('token');
+        state = AuthState();
+      }
     }
   }
 
   Future<bool> login(String email, String password) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      // 1. Try real API first
-      try {
-        final response = await _apiService.post(ApiConstants.login, data: {
-          'email': email,
-          'password': password,
-        });
+      final response = await _apiService.post(ApiConstants.login, data: {
+        'email': email,
+        'password': password,
+      }).timeout(const Duration(seconds: 10));
 
-        final token = response.data['token'];
-        final userData = response.data;
-        
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token);
+      final token = response.data['token'];
+      final userData = response.data;
+      
+      await _prefs?.setString('token', token);
 
-        state = state.copyWith(isLoading: false, token: token, user: userData);
-        return true;
-      } catch (apiError) {
-        // 2. Fallback to mock if API fails (e.g. server down or DB down)
-        final user = _mockUsers.firstWhere(
-          (u) => u['email'] == email && u['password'] == password,
-          orElse: () => {},
-        );
-
-        if (user.isNotEmpty) {
-          state = state.copyWith(
-            isLoading: false, 
-            token: 'mock-token-${user['role']}', 
-            user: user
-          );
-          return true;
-        }
-        
-        state = state.copyWith(isLoading: false, error: 'Invalid email or password');
-        return false;
-      }
+      state = state.copyWith(isLoading: false, token: token, user: userData);
+      return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Connection error');
+      String errorMessage = 'Invalid email or password';
+      if (e is DioException && e.response != null) {
+        errorMessage = e.response?.data['message'] ?? errorMessage;
+      } else if (e is DioException && e.type == DioExceptionType.connectionTimeout) {
+        errorMessage = 'Server connection timed out';
+      }
+      
+      state = state.copyWith(isLoading: false, error: errorMessage);
       return false;
     }
   }
 
   Future<bool> signup(String name, String email, String password, String role) async {
     state = state.copyWith(isLoading: true, error: null);
+    print('📝 Attempting Signup for: $email');
     try {
-      // 1. Try real API
-      try {
-        final response = await _apiService.post(ApiConstants.register, data: {
-          'name': name,
-          'email': email,
-          'password': password,
-          'role': role,
-        });
+      final response = await _apiService.post(ApiConstants.register, data: {
+        'name': name,
+        'email': email,
+        'password': password,
+        'role': role,
+      });
 
-        final token = response.data['token'];
-        final userData = response.data;
-        
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token);
+      print('✅ Signup API Success');
+      final token = response.data['token'];
+      final userData = response.data;
+      
+      // Ensure prefs is ready
+      _prefs ??= await SharedPreferences.getInstance();
+      await _prefs!.setString('token', token);
 
-        state = state.copyWith(isLoading: false, token: token, user: userData);
-        return true;
-      } catch (apiError) {
-        // 2. Fallback to mock
-        if (_mockUsers.any((u) => u['email'] == email)) {
-          state = state.copyWith(isLoading: false, error: 'User already exists');
-          return false;
-        }
-
-        final newUser = {
-          'name': name,
-          'email': email,
-          'password': password,
-          'role': role,
-        };
-        _mockUsers.add(newUser);
-        await _saveMockUsers();
-
-        state = state.copyWith(
-          isLoading: false, 
-          token: 'mock-token-$role', 
-          user: newUser
-        );
-        return true;
-      }
+      state = state.copyWith(isLoading: false, token: token, user: userData);
+      print('🎉 Signup state updated successfully');
+      return true;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: 'Connection error');
+      print('❌ Signup API Error: $e');
+      String errorMessage = 'Signup failed';
+      if (e is DioException && e.response != null) {
+        errorMessage = e.response?.data['message'] ?? errorMessage;
+      }
+      state = state.copyWith(isLoading: false, error: errorMessage);
       return false;
     }
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
+    await _prefs?.remove('token');
     state = AuthState();
   }
 
-  // Restore the getter for the usersProvider
-  List<Map<String, dynamic>> get allUsers => List.unmodifiable(_mockUsers);
+  // Clear any existing errors
+  void clearError() {
+    if (state.error != null) {
+      state = state.copyWith(error: null);
+    }
+  }
 }
-
-final usersProvider = Provider<List<Map<String, dynamic>>>((ref) {
-  final auth = ref.watch(authProvider.notifier);
-  return auth.allUsers;
-});

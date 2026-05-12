@@ -99,13 +99,24 @@ exports.getProductById = async (req, res) => {
 // @route   POST /api/products
 exports.createProduct = async (req, res) => {
     try {
+        const productData = { ...req.body };
+        // Convert isFeatured from string "true"/"false" to boolean
+        productData.isFeatured = productData.isFeatured === 'true' || productData.isFeatured === true;
+        
+        if (req.file) {
+            const imagePath = req.file.path.startsWith('http') 
+                ? req.file.path 
+                : `/uploads/products/${req.file.filename}`;
+            productData.images = [imagePath];
+        }
+
         try {
-            const product = new Product(req.body);
+            const product = new Product(productData);
             const createdProduct = await product.save();
             res.status(201).json(createdProduct);
         } catch (dbError) {
             const products = readMockProducts();
-            const newProduct = { ...req.body, _id: Date.now().toString(), createdAt: new Date() };
+            const newProduct = { ...productData, _id: Date.now().toString(), createdAt: new Date() };
             products.unshift(newProduct);
             fs.writeFileSync(MOCK_DB_PATH, JSON.stringify(products, null, 2));
             res.status(201).json(newProduct);
@@ -119,14 +130,26 @@ exports.createProduct = async (req, res) => {
 // @route   PUT /api/products/:id
 exports.updateProduct = async (req, res) => {
     try {
+        const updateData = { ...req.body };
+        if (updateData.isFeatured !== undefined) {
+            updateData.isFeatured = updateData.isFeatured === 'true' || updateData.isFeatured === true;
+        }
+        
+        if (req.file) {
+            const imagePath = req.file.path.startsWith('http') 
+                ? req.file.path 
+                : `/uploads/products/${req.file.filename}`;
+            updateData.images = [imagePath];
+        }
+
         try {
-            const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+            const product = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
             if (product) return res.json(product);
         } catch (dbError) {
             let products = readMockProducts();
             const index = products.findIndex(p => p._id === req.params.id);
             if (index !== -1) {
-                products[index] = { ...products[index], ...req.body };
+                products[index] = { ...products[index], ...updateData };
                 fs.writeFileSync(MOCK_DB_PATH, JSON.stringify(products, null, 2));
                 return res.json(products[index]);
             }
@@ -147,7 +170,12 @@ exports.deleteProduct = async (req, res) => {
         } catch (dbError) {
             let products = readMockProducts();
             const initialLength = products.length;
-            products = products.filter(p => p._id !== req.params.id);
+            // Robust filtering for both _id and id formats
+            products = products.filter(p => {
+                const pId = (p._id || p.id || '').toString();
+                return pId !== req.params.id;
+            });
+
             if (products.length < initialLength) {
                 fs.writeFileSync(MOCK_DB_PATH, JSON.stringify(products, null, 2));
                 return res.json({ message: 'Product removed' });

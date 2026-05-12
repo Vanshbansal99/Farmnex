@@ -199,59 +199,79 @@ class CartScreen extends ConsumerWidget {
                     return;
                   }
 
-                  // Create Order
-                  final newOrder = Order(
-                    id: '#ORD${DateTime.now().millisecondsSinceEpoch.toString().substring(8)}',
-                    customerName: user['name'] ?? 'Unknown',
-                    customerEmail: user['email'] ?? 'Unknown',
-                    items: List.from(items),
-                    total: total,
-                    date: DateTime.now(),
-                  );
+                  // Format items for backend
+                  final orderData = {
+                    'orderItems': items.map((item) => {
+                      'name': item.name,
+                      'qty': item.quantity,
+                      'image': 'https://example.com/placeholder.png', // Default placeholder
+                      'price': item.price,
+                      'product': item.id,
+                    }).toList(),
+                    'shippingAddress': {
+                      'street': 'Default Street',
+                      'city': 'Default City',
+                      'state': 'Default State',
+                      'zip': '000000',
+                      'country': 'India',
+                    },
+                    'paymentMethod': 'Cash on Delivery',
+                    'totalPrice': total,
+                  };
 
-                  ref.read(orderProvider.notifier).addOrder(newOrder);
-                  ref.read(cartProvider.notifier).clear();
-
-                  showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (context) => AlertDialog(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                      title: const Icon(Icons.check_circle, color: AppColors.success, size: 60),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'Order Successful!',
-                            style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                            'Your parts are being prepared for dispatch.',
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.outfit(color: AppColors.metallicGray),
-                          ),
-                        ],
-                      ),
-                      actions: [
-                        Center(
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              context.go('/');
-                            },
-                            child: const Text('BACK TO HOME'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
+                  ref.read(orderProvider.notifier).createOrder(orderData).then((success) {
+                    if (success) {
+                      ref.read(cartProvider.notifier).clear();
+                      _showSuccessDialog(context);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Checkout failed. Please try again.'), backgroundColor: AppColors.error),
+                      );
+                    }
+                  });
                 },
                 child: const Text('PLACE ORDER NOW'),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Icon(Icons.check_circle, color: AppColors.success, size: 60),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Order Successful!',
+              style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Your parts are being prepared for dispatch.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.outfit(color: AppColors.metallicGray),
+            ),
+          ],
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                context.go('/');
+              },
+              child: const Text('BACK TO HOME'),
+            ),
+          ),
+        ],
       ),
     );
   }

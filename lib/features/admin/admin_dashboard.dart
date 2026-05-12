@@ -9,16 +9,16 @@ import 'admin_drawer.dart';
 import 'product_admin_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'admin_stats_provider.dart';
 
 class AdminDashboard extends ConsumerWidget {
   const AdminDashboard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final orders = ref.watch(orderProvider);
-    final totalRevenue = ref.watch(orderProvider.notifier).totalRevenue;
+    final statsState = ref.watch(adminStatsProvider);
+    final orders = ref.watch(orderProvider).asData?.value ?? [];
     final products = ref.watch(adminProductProvider);
-    final users = ref.watch(usersProvider);
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
@@ -36,6 +36,11 @@ class AdminDashboard extends ConsumerWidget {
         foregroundColor: AppColors.white,
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => ref.read(adminStatsProvider.notifier).fetchStats(),
+            tooltip: 'Refresh Stats',
+          ),
+          IconButton(
             icon: const Icon(Icons.notifications_none),
             onPressed: () {},
           ),
@@ -50,74 +55,96 @@ class AdminDashboard extends ConsumerWidget {
         ],
       ),
       endDrawer: const AdminDrawer(currentPath: '/admin'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Dashboard Overview',
-                  style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'Live Data Feed',
-                  style: GoogleFonts.outfit(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            _buildStatGrid(orders.length, totalRevenue, products.length, users.length),
-            const SizedBox(height: 32),
-            
-            // Analytics Charts
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: _buildRevenueChart(orders),
-                ),
-                const SizedBox(width: 24),
-                Expanded(
-                  child: _buildCategoryDistribution(products),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Activity Feed & Orders
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSectionHeader('Recent Orders', onAction: () {}),
-                      const SizedBox(height: 16),
-                      _buildRecentOrdersTable(orders),
-                    ],
+      body: statsState.when(
+        data: (stats) => SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Dashboard Overview',
+                    style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
-                ),
-                const SizedBox(width: 24),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSectionHeader('System Activity'),
-                      const SizedBox(height: 16),
-                      _buildActivityFeed(orders),
-                    ],
+                  Text(
+                    'Live Data Feed',
+                    style: GoogleFonts.outfit(color: AppColors.success, fontWeight: FontWeight.bold, fontSize: 12),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildStatGrid(
+                stats['totalOrders'] ?? 0, 
+                (stats['totalRevenue'] as num?)?.toDouble() ?? 0.0, 
+                stats['totalProducts'] ?? 0, 
+                stats['totalUsers'] ?? 0
+              ),
+              const SizedBox(height: 32),
+              
+              // Analytics Charts
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: _buildRevenueChart(orders),
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(
+                    child: _buildCategoryDistribution(products),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Activity Feed & Orders
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader('Recent Orders', onAction: () {}),
+                        const SizedBox(height: 16),
+                        _buildRecentOrdersTable(orders),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 24),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSectionHeader('System Activity'),
+                        const SizedBox(height: 16),
+                        _buildActivityFeed(orders),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.darkGreen)),
+        error: (err, stack) => Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+              const SizedBox(height: 16),
+              Text('Failed to load dashboard stats', style: GoogleFonts.outfit(fontSize: 18)),
+              TextButton(
+                onPressed: () => ref.read(adminStatsProvider.notifier).fetchStats(),
+                child: const Text('Try Again'),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -296,8 +323,6 @@ class AdminDashboard extends ConsumerWidget {
     );
   }
 
-
-
   Widget _buildStatGrid(int totalOrders, double revenue, int totalProducts, int totalUsers) {
     return GridView.count(
       crossAxisCount: 2,
@@ -353,29 +378,40 @@ class AdminDashboard extends ConsumerWidget {
   }
 
   Widget _buildRecentOrdersTable(List<Order> orders) {
+    if (orders.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(16)),
+        child: Center(child: Text('No recent orders', style: GoogleFonts.outfit(color: AppColors.metallicGray))),
+      );
+    }
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: DataTable(
-        columnSpacing: 10,
-        horizontalMargin: 12,
-        columns: const [
-          DataColumn(label: Text('ID')),
-          DataColumn(label: Text('Customer')),
-          DataColumn(label: Text('Status')),
-          DataColumn(label: Text('Total')),
-        ],
-        rows: orders.map((order) => _buildDataRow(order)).toList(),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columnSpacing: 20,
+          horizontalMargin: 12,
+          columns: const [
+            DataColumn(label: Text('ID')),
+            DataColumn(label: Text('Customer')),
+            DataColumn(label: Text('Status')),
+            DataColumn(label: Text('Total')),
+          ],
+          rows: orders.take(5).map((order) => _buildDataRow(order)).toList(),
+        ),
       ),
     );
   }
 
   DataRow _buildDataRow(Order order) {
     return DataRow(cells: [
-      DataCell(Text(order.id, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
+      DataCell(Text(order.id.substring(order.id.length - 4), style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
       DataCell(Text(order.customerName, style: const TextStyle(fontSize: 12))),
       DataCell(Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

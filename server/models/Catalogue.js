@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const cataloguePartSchema = new mongoose.Schema({
-    partId: { type: String, required: true },
+    partId: { type: String, required: false },
     name: { type: String, required: true },
     partNumber: { type: String, required: true },
     price: { type: Number, required: true },

@@ -11,6 +11,7 @@ class AdminProduct {
   final int stock;
   final String description;
   final String image;
+  final bool isFeatured;
 
   AdminProduct({
     required this.id,
@@ -21,6 +22,7 @@ class AdminProduct {
     required this.stock,
     required this.description,
     this.image = '',
+    this.isFeatured = false,
   });
 
   AdminProduct copyWith({
@@ -31,6 +33,7 @@ class AdminProduct {
     String? description,
     String? image,
     String? partNumber,
+    bool? isFeatured,
   }) {
     return AdminProduct(
       id: id,
@@ -41,6 +44,7 @@ class AdminProduct {
       description: description ?? this.description,
       image: image ?? this.image,
       partNumber: partNumber ?? this.partNumber,
+      isFeatured: isFeatured ?? this.isFeatured,
     );
   }
 
@@ -51,6 +55,9 @@ class AdminProduct {
       imageUrl = images[0];
       if (imageUrl.startsWith('/uploads')) {
         imageUrl = ApiConstants.baseUrl.replaceAll('/api', '') + imageUrl;
+      } else if (!imageUrl.startsWith('http')) {
+        // Fallback for any other relative paths
+        imageUrl = ApiConstants.baseUrl.replaceAll('/api', '') + '/' + imageUrl;
       }
     }
     
@@ -59,10 +66,11 @@ class AdminProduct {
       name: json['name'] ?? '',
       partNumber: json['partNumber'] ?? '',
       category: json['category'] ?? '',
-      price: (json['price'] ?? 0).toDouble(),
-      stock: json['stock'] ?? 0,
+      price: double.tryParse(json['price'].toString()) ?? 0.0,
+      stock: int.tryParse(json['stock'].toString()) ?? 0,
       description: json['description'] ?? '',
       image: imageUrl,
+      isFeatured: json['isFeatured'] == true || json['isFeatured'].toString() == 'true',
     );
   }
 }
@@ -86,6 +94,53 @@ class AdminProductNotifier extends StateNotifier<List<AdminProduct>> {
     }
   }
 
+  Future<void> createProduct({
+    required String name,
+    required String category,
+    required double price,
+    required int stock,
+    required String description,
+    required dynamic imageFile, // File, XFile, or bytes
+    required String fileName,
+    required String token,
+    bool isFeatured = false,
+  }) async {
+    try {
+      MultipartFile? multipartFile;
+      if (imageFile != null) {
+        if (imageFile is List<int>) {
+          multipartFile = MultipartFile.fromBytes(imageFile, filename: fileName);
+        } else {
+          multipartFile = await MultipartFile.fromFile(imageFile.path, filename: fileName);
+        }
+      }
+
+      final formData = FormData.fromMap({
+        'name': name,
+        'category': category,
+        'price': price,
+        'stock': stock,
+        'description': description,
+        'isFeatured': isFeatured,
+        if (multipartFile != null) 'image': multipartFile,
+      });
+
+      final response = await _dio.post(
+        '${ApiConstants.baseUrl}/products',
+        data: formData,
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+
+      if (response.statusCode == 201) {
+        final newProduct = AdminProduct.fromJson(response.data);
+        state = [newProduct, ...state];
+      }
+    } catch (e) {
+      print('Error creating product: $e');
+      rethrow;
+    }
+  }
+
   void addProduct(AdminProduct product) {
     state = [product, ...state];
   }
@@ -97,8 +152,19 @@ class AdminProductNotifier extends StateNotifier<List<AdminProduct>> {
     ];
   }
 
-  void deleteProduct(String id) {
-    state = state.where((p) => p.id != id).toList();
+  Future<void> deleteProduct(String id, String token) async {
+    try {
+      final response = await _dio.delete(
+        '${ApiConstants.baseUrl}/products/$id',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      if (response.statusCode == 200) {
+        state = state.where((p) => p.id != id).toList();
+      }
+    } catch (e) {
+      print('Error deleting product: $e');
+      rethrow;
+    }
   }
 }
 

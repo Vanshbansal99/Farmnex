@@ -14,7 +14,8 @@ class AdminDrawer extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Drawer(
       backgroundColor: AppColors.white,
-      child: Column(
+      child: ListView(
+        padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
             decoration: const BoxDecoration(
@@ -48,7 +49,6 @@ class AdminDrawer extends ConsumerWidget {
           _buildDrawerItem(context, Icons.settings_outlined, 'System Settings', '/admin/settings', currentPath == '/admin/settings'),
           const Divider(),
           _buildDrawerItem(context, Icons.storefront_outlined, 'Back to Storefront', '/', false),
-          const Spacer(),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.logout, color: AppColors.error),
@@ -61,7 +61,7 @@ class AdminDrawer extends ConsumerWidget {
               context.go('/login');
             },
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 40),
         ],
       ),
     );

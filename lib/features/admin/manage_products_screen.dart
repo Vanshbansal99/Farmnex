@@ -5,6 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import 'admin_drawer.dart';
 import 'product_admin_provider.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
+import '../auth/auth_provider.dart';
 
 class ManageProductsScreen extends ConsumerWidget {
   const ManageProductsScreen({super.key});
@@ -19,7 +23,7 @@ class ManageProductsScreen extends ConsumerWidget {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/admin'),
-          tooltip: 'Back to Storefront',
+          tooltip: 'Back to Analytics',
         ),
         title: Text(
           'MANAGE PRODUCTS',
@@ -87,6 +91,7 @@ class ManageProductsScreen extends ConsumerWidget {
       child: DataTable(
         columnSpacing: 20,
         columns: const [
+          DataColumn(label: Text('Image')),
           DataColumn(label: Text('Product')),
           DataColumn(label: Text('Category')),
           DataColumn(label: Text('Price')),
@@ -94,6 +99,22 @@ class ManageProductsScreen extends ConsumerWidget {
           DataColumn(label: Text('Actions')),
         ],
         rows: products.map((product) => DataRow(cells: [
+          DataCell(
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: product.image.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(product.image, fit: BoxFit.cover),
+                    )
+                  : const Icon(Icons.image_outlined, color: Colors.grey),
+            ),
+          ),
           DataCell(Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold))),
           DataCell(Text(product.category)),
           DataCell(Text('₹${product.price.toStringAsFixed(0)}')),
@@ -146,49 +167,115 @@ class ManageProductsScreen extends ConsumerWidget {
     final priceController = TextEditingController();
     final stockController = TextEditingController();
     final descController = TextEditingController();
+    
+    XFile? pickedImage;
+    Uint8List? webImage;
 
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
+        builder: (context, setDialogState) => AlertDialog(
           title: Text('Add New Product', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Product Name')),
+                GestureDetector(
+                  onTap: () async {
+                    final picker = ImagePicker();
+                    final image = await picker.pickImage(source: ImageSource.gallery);
+                    if (image != null) {
+                      if (kIsWeb) {
+                        final bytes = await image.readAsBytes();
+                        setDialogState(() {
+                          webImage = bytes;
+                          pickedImage = image;
+                        });
+                      } else {
+                        setDialogState(() => pickedImage = image);
+                      }
+                    }
+                  },
+                  child: Container(
+                    height: 120,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300, style: BorderStyle.solid),
+                    ),
+                    child: (webImage != null || pickedImage != null)
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: kIsWeb 
+                                ? Image.memory(webImage!, fit: BoxFit.cover)
+                                : Image.file(File(pickedImage!.path), fit: BoxFit.cover),
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.add_a_photo_outlined, color: AppColors.darkGreen, size: 32),
+                              const SizedBox(height: 8),
+                              Text('Upload Product Photo', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                            ],
+                          ),
+                  ),
+                ),
                 const SizedBox(height: 16),
+                TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Product Name')),
                 DropdownButtonFormField<String>(
                   decoration: const InputDecoration(labelText: 'Category'),
                   value: selectedCategory,
                   items: categories.map((cat) => DropdownMenuItem(value: cat, child: Text(cat))).toList(),
-                  onChanged: (val) => setState(() => selectedCategory = val),
+                  onChanged: (val) => setDialogState(() => selectedCategory = val),
                 ),
-                TextField(controller: priceController, decoration: const InputDecoration(labelText: 'Price'), keyboardType: TextInputType.number),
+                TextField(controller: priceController, decoration: const InputDecoration(labelText: 'Price (₹)'), keyboardType: TextInputType.number),
                 TextField(controller: stockController, decoration: const InputDecoration(labelText: 'Initial Stock'), keyboardType: TextInputType.number),
-                TextField(controller: descController, decoration: const InputDecoration(labelText: 'Description'), maxLines: 3),
+                TextField(controller: descController, decoration: const InputDecoration(labelText: 'Description'), maxLines: 2),
               ],
             ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-            ElevatedButton(
-              onPressed: () {
-                if (selectedCategory == null) return;
-                final newProduct = AdminProduct(
-                  id: DateTime.now().millisecondsSinceEpoch.toString(),
-                  name: nameController.text,
-                  category: selectedCategory!,
-                  price: double.tryParse(priceController.text) ?? 0.0,
-                  stock: int.tryParse(stockController.text) ?? 0,
-                  description: descController.text,
-                );
-                ref.read(adminProductProvider.notifier).addProduct(newProduct);
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.darkGreen, foregroundColor: AppColors.white),
-              child: const Text('Add Product'),
-            ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (selectedCategory == null || nameController.text.isEmpty) return;
+                  
+                  // Show loading
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) => const Center(child: CircularProgressIndicator(color: AppColors.darkGreen)),
+                  );
+
+                  try {
+                    final token = ref.read(authProvider).token!;
+                    await ref.read(adminProductProvider.notifier).createProduct(
+                      name: nameController.text,
+                      category: selectedCategory!,
+                      price: double.tryParse(priceController.text) ?? 0.0,
+                      stock: int.tryParse(stockController.text) ?? 0,
+                      description: descController.text,
+                      imageFile: kIsWeb ? webImage : pickedImage,
+                      fileName: pickedImage?.name ?? 'product.jpg',
+                      token: token,
+                      isFeatured: true,
+                    );
+                    if (context.mounted) {
+                      Navigator.pop(context); // Close loading
+                      Navigator.pop(context); // Close add dialog
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      Navigator.pop(context); // Close loading
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: AppColors.darkGreen, foregroundColor: AppColors.white),
+                child: const Text('Add Product'),
+              ),
           ],
         ),
       ),
@@ -258,9 +345,16 @@ class ManageProductsScreen extends ConsumerWidget {
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
           ElevatedButton(
-            onPressed: () {
-              ref.read(adminProductProvider.notifier).deleteProduct(product.id);
-              Navigator.pop(context);
+            onPressed: () async {
+              try {
+                final token = ref.read(authProvider).token!;
+                await ref.read(adminProductProvider.notifier).deleteProduct(product.id, token);
+                if (context.mounted) Navigator.pop(context);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Delete failed: $e')));
+                }
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
             child: const Text('Delete'),

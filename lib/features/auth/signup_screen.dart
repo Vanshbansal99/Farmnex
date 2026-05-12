@@ -98,6 +98,22 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (authState.error != null)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            margin: const EdgeInsets.only(bottom: 20),
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                            ),
+                            child: Text(
+                              authState.error!,
+                              style: GoogleFonts.outfit(color: AppColors.error, fontSize: 13, fontWeight: FontWeight.bold),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
                         _buildFieldHeader('FULL NAME'),
                         const SizedBox(height: 8),
                         _buildTextField(
@@ -113,6 +129,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           controller: _emailController,
                           hint: 'e.g. john@example.com',
                           icon: Icons.email_outlined,
+                          onChanged: (_) => ref.read(authProvider.notifier).clearError(),
                         ),
                         
                         const SizedBox(height: 20),
@@ -120,6 +137,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _passwordController,
+                          onChanged: (_) => ref.read(authProvider.notifier).clearError(),
                           obscureText: !_isPasswordVisible,
                           style: GoogleFonts.outfit(color: AppColors.black),
                           decoration: InputDecoration(
@@ -141,53 +159,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                           ),
                         ),
                         
-                        const SizedBox(height: 24),
-                        
-                        // Admin Role Toggle
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: _isAdmin ? AppColors.darkGreen.withOpacity(0.05) : Colors.transparent,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: _isAdmin ? AppColors.darkGreen : AppColors.lightGray,
-                              width: 1,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Checkbox(
-                                value: _isAdmin,
-                                activeColor: AppColors.darkGreen,
-                                onChanged: (val) => setState(() => _isAdmin = val ?? false),
-                              ),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Register as Admin',
-                                      style: GoogleFonts.outfit(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                        color: _isAdmin ? AppColors.darkGreen : AppColors.black,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Access inventory management tools',
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 11,
-                                        color: AppColors.metallicGray,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 12),
                         
                         // Signup Button
                         SizedBox(
@@ -199,14 +171,33 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                               final email = _emailController.text.trim();
                               final password = _passwordController.text.trim();
                               
-                              if (name.isEmpty || email.isEmpty || password.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Please fill all fields'),
-                                    backgroundColor: AppColors.error,
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
+                              // Clear previous errors
+                              ref.read(authProvider.notifier).clearError();
+
+                              if (name.isEmpty) {
+                                _showError(context, 'Please enter your full name');
+                                return;
+                              }
+                              
+                              if (email.isEmpty) {
+                                _showError(context, 'Please enter your email address');
+                                return;
+                              }
+
+                              // Email Validation
+                              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                              if (!emailRegex.hasMatch(email)) {
+                                _showError(context, 'Please enter a valid email address');
+                                return;
+                              }
+
+                              if (password.isEmpty) {
+                                _showError(context, 'Please create a password');
+                                return;
+                              }
+
+                              if (password.length < 6) {
+                                _showError(context, 'Password must be at least 6 characters');
                                 return;
                               }
                               
@@ -214,22 +205,18 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                                 name,
                                 email,
                                 password,
-                                _isAdmin ? 'admin' : 'buyer',
+                                'buyer',
                               );
+                              
                               if (success && mounted) {
-                                if (_isAdmin) {
-                                  context.go('/admin');
-                                } else {
-                                  context.go('/profile');
-                                }
-                              } else if (mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(authState.error ?? 'Signup failed'),
-                                    backgroundColor: AppColors.error,
+                                  const SnackBar(
+                                    content: Text('Welcome to FarmNex! Account created successfully.'),
+                                    backgroundColor: AppColors.success,
                                     behavior: SnackBarBehavior.floating,
                                   ),
                                 );
+                                if (mounted) context.go('/profile');
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -286,6 +273,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     );
   }
 
+  void _showError(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
   Widget _buildFieldHeader(String label) {
     return Text(
       label,
@@ -302,9 +300,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     required TextEditingController controller,
     required String hint,
     required IconData icon,
+    void Function(String)? onChanged,
   }) {
     return TextFormField(
       controller: controller,
+      onChanged: onChanged,
       style: GoogleFonts.outfit(color: AppColors.black),
       decoration: InputDecoration(
         hintText: hint,

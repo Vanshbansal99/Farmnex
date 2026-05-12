@@ -1,120 +1,166 @@
 [
   {
-    "name": "newww",
-    "imageUrl": "/uploads/catalogues/image-1778338949581.png",
+    "name": "INTERNAL LEVER ASSEMBLY",
+    "imageUrl": "https://res.cloudinary.com/dhular87d/image/upload/v1778528996/farmnex/yatfcryazzy74jgjqaeg.png",
     "parts": [
       {
-        "id": "1778338947662",
-        "name": "de",
-        "partNumber": "2121",
-        "price": 1212,
-        "description": "12wdw",
-        "category": "Engine",
-        "xFraction": 0.5928266906738281,
-        "yFraction": 0.7656608072916666
-      }
-    ],
-    "createdAt": "2026-05-09T15:02:29.598Z",
-    "_id": "1778338949633"
-  },
-  {
-    "name": "test1",
-    "imageUrl": "/uploads/catalogues/image-1778338325577.png",
-    "parts": [
-      {
-        "id": "1778338288129",
-        "name": "123",
-        "partNumber": "1221",
-        "price": 121212,
-        "description": "12wsdf",
+        "id": "1778528804487",
+        "name": "KIT PIN",
+        "partNumber": "15045003AA",
+        "price": 898,
+        "description": "KIT PIN",
         "category": "Transmission",
-        "xFraction": 0.6358541870125282,
-        "yFraction": 0.7294921874983822
+        "xFraction": 0.14684586297898067,
+        "yFraction": 0.5848104487020502
+      },
+      {
+        "id": "1778528848934",
+        "name": "KIT COPENSATOR",
+        "partNumber": "15045002AA",
+        "price": 2500,
+        "description": "KIT COPENSATOR",
+        "category": "Transmission",
+        "xFraction": 0.26948293050130206,
+        "yFraction": 0.6679760160900298
+      },
+      {
+        "id": "1778528878733",
+        "name": "KIT PIN",
+        "partNumber": "15045005AA ",
+        "price": 890,
+        "description": "KIT PIN",
+        "category": "Transmission",
+        "xFraction": 0.2594084966750372,
+        "yFraction": 0.9139391379381614
+      },
+      {
+        "id": "1778528956068",
+        "name": "LEVER",
+        "partNumber": "15045004AA",
+        "price": 990,
+        "description": "LEVER",
+        "category": "Transmission",
+        "xFraction": 0.29917259821816095,
+        "yFraction": 0.8312040460172785
+      },
+      {
+        "id": "1778528990838",
+        "name": "KIT LEVER",
+        "partNumber": "15045001AA",
+        "price": 789,
+        "description": "KIT LEVER",
+        "category": "Transmission",
+        "xFraction": 0.8753211611793155,
+        "yFraction": 0.4669610886346726
       }
     ],
-    "createdAt": "2026-05-09T14:52:05.594Z",
-    "_id": "1778338325605"
+    "createdAt": "2026-05-11T19:49:57.315Z",
+    "_id": "1778528997407"
   },
   {
-    "name": "qwsax",
-    "imageUrl": "/uploads/catalogues/image-1778338170001.png",
+    "name": "INTERNAL LEVER ASSEMBLY",
+    "imageUrl": "/uploads/catalogues/image-1778523636415.png",
     "parts": [
       {
-        "id": "1778338152572",
-        "name": "nut jam",
-        "partNumber": "asd",
-        "price": 12,
-        "description": "1221",
-        "category": "Electrical",
-        "xFraction": 0.6218067783949978,
-        "yFraction": 0.5723173422515545
+        "id": "1778523415410",
+        "name": "KIT LEVER",
+        "partNumber": "15045001AA",
+        "price": 444,
+        "description": "KIT LEVER",
+        "category": "Transmission",
+        "xFraction": 0.8753034803602431,
+        "yFraction": 0.46770360230138064
+      },
+      {
+        "id": "1778523457927",
+        "name": "KIT PIN",
+        "partNumber": "15045005AA",
+        "price": 800,
+        "description": "KIT PIN",
+        "category": "Transmission",
+        "xFraction": 0.26201314774770584,
+        "yFraction": 0.9436779526806383
+      },
+      {
+        "id": "1778523535554",
+        "name": "LEVER",
+        "partNumber": "15045004AA",
+        "price": 898,
+        "description": "LEVER",
+        "category": "Transmission",
+        "xFraction": 0.3114869253977865,
+        "yFraction": 0.8490268767825727
+      },
+      {
+        "id": "1778523579939",
+        "name": "KIT PIN",
+        "partNumber": "15045003AA",
+        "price": 787,
+        "description": "KIT PIN",
+        "category": "Transmission",
+        "xFraction": 0.13869597419878474,
+        "yFraction": 0.5711867720992063
+      },
+      {
+        "id": "1778523619148",
+        "name": "KIT COPENSATOR",
+        "partNumber": "15045002AA",
+        "price": 898,
+        "description": "KIT COPENSATOR",
+        "category": "Engine",
+        "xFraction": 0.27935403490842015,
+        "yFraction": 0.672456206468006
       }
     ],
-    "createdAt": "2026-05-09T14:49:30.004Z",
-    "_id": "1778338170010"
+    "createdAt": "2026-05-11T18:20:36.445Z",
+    "_id": "1778523636494"
   },
   {
-    "name": "test",
-    "imageUrl": "/uploads/catalogues/image-1778337496755.png",
+    "name": "INDO Farm CONTROL VALVE AND LEVER ASSEMBLY",
+    "imageUrl": "/uploads/catalogues/image-1778398994770.png",
     "parts": [
       {
-        "name": "123",
-        "partNumber": "132",
-        "price": 13,
-        "description": "1wes",
-        "xFraction": 0.720084567334666,
-        "yFraction": 0.21397638022000706
-      }
-    ],
-    "createdAt": "2026-05-09T14:38:16.762Z",
-    "_id": "1778337496789"
-  },
-  {
-    "name": "garvit",
-    "imageUrl": "/uploads/catalogues/image-1778336897774.png",
-    "parts": [
+        "id": "1778398871221",
+        "name": "KIT CAMSHAFT",
+        "partNumber": "15044003AA",
+        "price": 567,
+        "description": "KIT CAMSHAFT",
+        "category": "Hydraulic",
+        "xFraction": 0.17867121620806253,
+        "yFraction": 0.6612919398716505
+      },
       {
-        "name": "garvut",
-        "partNumber": "1133",
-        "price": 12323,
-        "description": "asdfgbdz",
-        "xFraction": 0.6522636413574219,
-        "yFraction": 0.6268263720961474
-      }
-    ],
-    "createdAt": "2026-05-09T14:28:17.779Z",
-    "_id": "1778336897793"
-  },
-  {
-    "name": "wew",
-    "imageUrl": "/uploads/catalogues/image-1778336501623.png",
-    "parts": [
+        "id": "1778398913352",
+        "name": "CONTROL VALVE ASSY",
+        "partNumber": "15044001AA",
+        "price": 767,
+        "description": "CONTROL VALVE ASSY.",
+        "category": "Hydraulic",
+        "xFraction": 0.5493590339783998,
+        "yFraction": 0.8254024768001805
+      },
       {
-        "name": "sfers",
-        "partNumber": "fs",
-        "price": 1234,
-        "description": "wefw",
-        "xFraction": 0.8972741989862352,
-        "yFraction": 0.39201032043134093
-      }
-    ],
-    "createdAt": "2026-05-09T14:21:41.641Z",
-    "_id": "1778336501657"
-  },
-  {
-    "name": "new",
-    "imageUrl": "/uploads/catalogues/image-1778336112154.png",
-    "parts": [
+        "id": "1778398956357",
+        "name": "KIT QUADRANT WITH FRICTION",
+        "partNumber": "15044002AA",
+        "price": 878,
+        "description": "KIT QUADRANT WITH FRICTION",
+        "category": "Hydraulic",
+        "xFraction": 0.6441606188579572,
+        "yFraction": 0.8611572104156319
+      },
       {
-        "name": "q3",
-        "partNumber": "121",
-        "price": 1212,
-        "description": "12wsa",
-        "xFraction": 0.6301994929237972,
-        "yFraction": 0.603445709067047
+        "id": "1778398991196",
+        "name": "KIT POSITION LEVER ",
+        "partNumber": "15044004AA",
+        "price": 989,
+        "description": "KIT POSITION LEVER ",
+        "category": "Hydraulic",
+        "xFraction": 0.7773125058130973,
+        "yFraction": 0.5942072792658717
       }
     ],
-    "createdAt": "2026-05-09T14:15:12.183Z",
-    "_id": "1778336112236"
+    "createdAt": "2026-05-10T07:43:14.783Z",
+    "_id": "1778398994826"
   }
 ]

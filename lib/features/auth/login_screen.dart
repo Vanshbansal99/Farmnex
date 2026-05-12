@@ -136,6 +136,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _emailController,
+                          onChanged: (_) => ref.read(authProvider.notifier).clearError(),
                           style: GoogleFonts.outfit(color: AppColors.black),
                           decoration: InputDecoration(
                             hintText: 'e.g. john@example.com',
@@ -164,6 +165,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(height: 8),
                         TextFormField(
                           controller: _passwordController,
+                          onChanged: (_) => ref.read(authProvider.notifier).clearError(),
                           obscureText: !_isPasswordVisible,
                           style: GoogleFonts.outfit(color: AppColors.black),
                           decoration: InputDecoration(
@@ -202,7 +204,29 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         
                         const SizedBox(height: 32),
-                        
+
+                        // Error Message
+                        if (authState.error != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.error_outline, color: AppColors.error, size: 16),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    authState.error!,
+                                    style: GoogleFonts.outfit(
+                                      color: AppColors.error,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
                         // Login Button
                         SizedBox(
                           width: double.infinity,
@@ -213,9 +237,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               final password = _passwordController.text.trim();
                               
                               if (email.isEmpty || password.isEmpty) {
+                                // Clear any previous errors manually via a custom state update if needed, 
+                                // but for now we'll just show the inline error.
+                                return;
+                              }
+
+                              // Email Format Validation
+                              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                              if (!emailRegex.hasMatch(email)) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text('Please enter both email and password'),
+                                    content: Text('Invalid email format (e.g. name@example.com)'),
                                     backgroundColor: AppColors.error,
                                     behavior: SnackBarBehavior.floating,
                                   ),
@@ -226,21 +258,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               final success = await ref.read(authProvider.notifier).login(email, password);
                               
                               if (success && mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Login successful! Welcome back.'),
+                                    backgroundColor: AppColors.success,
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
                                 final user = ref.read(authProvider).user;
                                 if (user?['role'] == 'admin') {
                                   context.go('/admin');
                                 } else {
                                   context.go('/profile');
                                 }
-                              } else if (mounted) {
-                                final error = ref.read(authProvider).error;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(error ?? 'Login failed'),
-                                    backgroundColor: AppColors.error,
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
                               }
                             },
                             style: ElevatedButton.styleFrom(
@@ -252,15 +282,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               elevation: 8,
                               shadowColor: AppColors.darkGreen.withOpacity(0.5),
                             ),
-                            child: authState.isLoading 
-                              ? const CircularProgressIndicator(color: AppColors.white)
-                              : Text(
-                                  'LOGIN TO ACCOUNT',
-                                  style: GoogleFonts.outfit(
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1,
+                            child: authState.isLoading
+                                ? const Center(
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.white,
+                                      strokeWidth: 3,
+                                    ),
+                                  )
+                                : Text(
+                                    'LOGIN TO ACCOUNT',
+                                    style: GoogleFonts.outfit(
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                    ),
                                   ),
-                                ),
                           ),
                         ),
                       ],

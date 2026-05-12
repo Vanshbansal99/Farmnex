@@ -26,31 +26,64 @@ class ProductDetailScreen extends ConsumerWidget {
       ),
     );
 
+    final isLargeScreen = MediaQuery.of(context).size.width > 900;
+
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(context, product.name),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
+      backgroundColor: AppColors.white,
+      appBar: isLargeScreen ? null : AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: AppColors.black,
+        actions: [
+          IconButton(icon: const Icon(Icons.favorite_border), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.share), onPressed: () {}),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isLargeScreen ? MediaQuery.of(context).size.width * 0.1 : 20.0,
+            vertical: 20.0,
+          ),
+          child: isLargeScreen 
+            ? Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildProductImage(product),
-                  const SizedBox(height: 20),
+                  Expanded(flex: 1, child: _buildProductImage(product, isLargeScreen)),
+                  const SizedBox(width: 40),
+                  Expanded(
+                    flex: 1, 
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildProductInfo(product),
+                        const SizedBox(height: 30),
+                        _buildSpecifications(product),
+                        const SizedBox(height: 30),
+                        _buildDescription(product.description),
+                        const SizedBox(height: 40),
+                        _buildBottomActionContent(context, ref, product),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildProductImage(product, isLargeScreen),
+                  const SizedBox(height: 24),
                   _buildProductInfo(product),
                   const SizedBox(height: 30),
                   _buildSpecifications(product),
                   const SizedBox(height: 30),
                   _buildDescription(product.description),
-                  const SizedBox(height: 100), // Space for bottom button
+                  const SizedBox(height: 120), // Space for bottom sheet
                 ],
               ),
-            ),
-          ),
-        ],
+        ),
       ),
-      bottomSheet: _buildBottomAction(context, ref, product),
+      bottomSheet: isLargeScreen ? null : _buildBottomAction(context, ref, product),
     );
   }
 
@@ -66,20 +99,108 @@ class ProductDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildProductImage(AdminProduct product) {
-    return Container(
-      height: 300,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: AppColors.lightGray,
-        borderRadius: BorderRadius.circular(20),
+  Widget _buildProductImage(AdminProduct product, bool isLargeScreen) {
+    return AspectRatio(
+      aspectRatio: isLargeScreen ? 1.0 : 1.2,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.lightGray.withOpacity(0.5),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.lightGray),
+        ),
+        child: Hero(
+          tag: 'product_${product.id}',
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: product.image.isNotEmpty
+                ? Image.network(
+                    product.image,
+                    fit: BoxFit.contain, // Contain looks better for part diagrams
+                  )
+                : const Center(
+                    child: Icon(Icons.image, size: 80, color: AppColors.metallicGray),
+                  ),
+          ),
+        ),
       ),
-      child: Hero(
-        tag: 'product_${product.id}',
-        child: product.image.isNotEmpty
-            ? Image.network(product.image, fit: BoxFit.cover)
-            : const Icon(Icons.image, size: 100, color: AppColors.metallicGray),
-      ),
+    );
+  }
+
+  Widget _buildBottomActionContent(BuildContext context, WidgetRef ref, AdminProduct product) {
+    final cart = ref.watch(cartProvider);
+    final isInCart = cart.any((item) => item.id == product.id);
+
+    return Row(
+      children: [
+        Container(
+          height: 60,
+          width: 60,
+          decoration: BoxDecoration(
+            color: AppColors.lightGray,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: IconButton(
+            icon: Icon(
+              isInCart ? Icons.shopping_cart : Icons.add_shopping_cart,
+              color: AppColors.darkGreen,
+            ),
+            onPressed: () {
+              ref.read(cartProvider.notifier).addItem(CartItem(
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+              ));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${product.name} added to cart'),
+                  behavior: SnackBarBehavior.floating,
+                  backgroundColor: AppColors.darkGreen,
+                  action: SnackBarAction(
+                    label: 'VIEW',
+                    textColor: AppColors.accentYellow,
+                    onPressed: () => context.push('/cart'),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: SizedBox(
+            height: 60,
+            child: ElevatedButton(
+              onPressed: () {
+                ref.read(cartProvider.notifier).addItem(CartItem(
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  image: product.image,
+                ));
+                context.push('/cart');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.darkGreen,
+                foregroundColor: AppColors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 4,
+                shadowColor: AppColors.darkGreen.withOpacity(0.4),
+              ),
+              child: Text(
+                'BUY NOW',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  letterSpacing: 2,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -206,87 +327,8 @@ class ProductDetailScreen extends ConsumerWidget {
           ),
         ],
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () {
-                final user = ref.read(authProvider).user;
-                if (user == null) {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Login Required'),
-                      content: const Text('Please login or create an account to start adding items to your cart.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Later'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            context.push('/login');
-                          },
-                          child: const Text('Login Now'),
-                        ),
-                      ],
-                    ),
-                  );
-                  return;
-                }
-
-                ref.read(cartProvider.notifier).addItem(CartItem(
-                  id: product.id,
-                  name: product.name,
-                  price: product.price,
-                  image: product.image,
-                ));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${product.name} added to cart')),
-                );
-              },
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: AppColors.darkGreen),
-                minimumSize: const Size(double.infinity, 56),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('Add to Cart'),
-            ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: ElevatedButton(
-              onPressed: () {
-                final user = ref.read(authProvider).user;
-                if (user == null) {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Login Required'),
-                      content: const Text('Please login to continue.'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            context.push('/login');
-                          },
-                          child: const Text('Login'),
-                        ),
-                      ],
-                    ),
-                  );
-                  return;
-                }
-              },
-              child: const Text('Buy Now'),
-            ),
-          ),
-        ],
+      child: SafeArea(
+        child: _buildBottomActionContent(context, ref, product),
       ),
     );
   }

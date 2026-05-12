@@ -16,9 +16,9 @@ class CatalogueNotifier extends StateNotifier<AsyncValue<List<Catalogue>>> {
     fetchCatalogues();
   }
 
-  Future<void> fetchCatalogues() async {
+  Future<void> fetchCatalogues({bool isSilent = false}) async {
     try {
-      state = const AsyncValue.loading();
+      if (!isSilent) state = const AsyncValue.loading();
       final response = await _dio.get('${ApiConstants.baseUrl}/catalogues');
       
       if (response.statusCode == 200) {
@@ -26,10 +26,10 @@ class CatalogueNotifier extends StateNotifier<AsyncValue<List<Catalogue>>> {
         final catalogues = data.map((json) => Catalogue.fromJson(json)).toList();
         state = AsyncValue.data(catalogues);
       } else {
-        state = AsyncValue.error('Failed to load catalogues', StackTrace.current);
+        if (!isSilent) state = AsyncValue.error('Failed to load catalogues', StackTrace.current);
       }
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      if (!isSilent) state = AsyncValue.error(e, st);
     }
   }
 
@@ -77,6 +77,28 @@ class CatalogueNotifier extends StateNotifier<AsyncValue<List<Catalogue>>> {
         await fetchCatalogues();
       } else {
         throw Exception('Failed to create catalogue');
+      }
+    } on DioException catch (e) {
+      final msg = e.response?.data['message'] ?? e.message;
+      throw Exception(msg);
+    } catch (e) {
+      rethrow;
+    }
+  }
+  Future<void> deleteCatalogue(String id, String token) async {
+    try {
+      final response = await _dio.delete(
+        '${ApiConstants.baseUrl}/catalogues/$id',
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        // Silent refresh to prevent full-screen loading spinner
+        await fetchCatalogues(isSilent: true);
+      } else {
+        throw Exception('Failed to delete catalogue');
       }
     } on DioException catch (e) {
       final msg = e.response?.data['message'] ?? e.message;

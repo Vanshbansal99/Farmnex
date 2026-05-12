@@ -34,4 +34,15 @@ class ApiService {
       rethrow;
     }
   }
+
+  Future<Response> delete(String path, {String? token}) async {
+    try {
+      final options = token != null
+          ? Options(headers: {'Authorization': 'Bearer $token'})
+          : null;
+      return await _dio.delete(path, options: options);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

@@ -11,11 +11,8 @@ class MyOrdersScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(authProvider).user;
-    final allOrders = ref.watch(orderProvider);
+    final orderState = ref.watch(orderProvider);
     
-    // Filter orders for the current user
-    final userOrders = allOrders.where((o) => o.customerEmail == user?['email']).toList();
-
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
@@ -23,17 +20,30 @@ class MyOrdersScreen extends ConsumerWidget {
         backgroundColor: AppColors.white,
         foregroundColor: AppColors.black,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => ref.read(orderProvider.notifier).fetchOrders(),
+          ),
+        ],
       ),
-      body: userOrders.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: userOrders.length,
-              itemBuilder: (context, index) {
-                final order = userOrders[index];
-                return _buildOrderCard(order);
-              },
-            ),
+      body: orderState.when(
+        data: (allOrders) {
+          final userOrders = allOrders.where((o) => o.customerEmail == user?['email']).toList();
+          if (userOrders.isEmpty) return _buildEmptyState();
+          
+          return ListView.builder(
+            padding: const EdgeInsets.all(20),
+            itemCount: userOrders.length,
+            itemBuilder: (context, index) {
+              final order = userOrders[index];
+              return _buildOrderCard(order);
+            },
+          );
+        },
+        loading: () => const Center(child: CircularProgressIndicator(color: AppColors.darkGreen)),
+        error: (err, stack) => Center(child: Text('Error loading orders: $err')),
+      ),
     );
   }
 
@@ -75,7 +85,7 @@ class MyOrdersScreen extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                order.id,
+                '#${order.id.substring(order.id.length - 6)}',
                 style: GoogleFonts.outfit(fontWeight: FontWeight.bold, color: AppColors.darkGreen),
               ),
               Container(
@@ -98,8 +108,8 @@ class MyOrdersScreen extends ConsumerWidget {
               children: [
                 const Icon(Icons.circle, size: 6, color: AppColors.metallicGray),
                 const SizedBox(width: 10),
-                Expanded(child: Text(item.name, style: GoogleFonts.outfit())),
-                Text('x${item.quantity}', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
+                Expanded(child: Text(item['name'] ?? 'Item', style: GoogleFonts.outfit())),
+                Text('x${item['qty']}', style: GoogleFonts.outfit(fontWeight: FontWeight.bold)),
               ],
             ),
           )).toList(),

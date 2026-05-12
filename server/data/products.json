@@ -1,17 +1,201 @@
 [
   {
-    "_id": "1778338949641882yk",
-    "name": "de",
-    "partNumber": "2121",
-    "description": "12wdw",
-    "price": 1212,
+    "name": "HYDROULIC LIFT PUMP ASSY. 10 SPLINE",
+    "category": "Hydraulic",
+    "price": "232",
+    "stock": "10",
+    "description": "HYDROULIC LIFT PUMP ASSY. 10 SPLINE",
+    "isFeatured": true,
+    "images": [
+      "https://res.cloudinary.com/dhular87d/image/upload/v1778528018/farmnex/jpdzgac55nwtxpgc0ops.png"
+    ],
+    "_id": "1778528029573",
+    "createdAt": "2026-05-11T19:33:49.573Z"
+  },
+  {
+    "name": "HYDROULIC LIFT PUMP ASSY. 10 SPLINE",
+    "category": "Hydraulic",
+    "price": "232",
+    "stock": "10",
+    "description": "HYDROULIC LIFT PUMP ASSY. 10 SPLINE",
+    "isFeatured": true,
+    "images": [
+      "https://res.cloudinary.com/dhular87d/image/upload/v1778528006/farmnex/izcl1rqtqp02zd9llwi1.png"
+    ],
+    "_id": "1778528017273",
+    "createdAt": "2026-05-11T19:33:37.273Z"
+  },
+  {
+    "_id": "1778523636501klmh8",
+    "name": "KIT COPENSATOR",
+    "partNumber": "15045002AA",
+    "description": "KIT COPENSATOR",
+    "price": 898,
     "category": "Engine",
     "brand": "FarmNex",
     "stock": 10,
+    "isFeatured": true,
     "images": [
-      "/uploads/catalogues/image-1778338949581.png"
+      "/uploads/catalogues/image-1778523636415.png"
     ],
-    "createdAt": "2026-05-09T15:02:29.641Z"
+    "createdAt": "2026-05-11T18:20:36.501Z"
+  },
+  {
+    "_id": "17785236365013bgyq",
+    "name": "LEVER",
+    "partNumber": "15045004AA",
+    "description": "LEVER",
+    "price": 898,
+    "category": "Transmission",
+    "brand": "FarmNex",
+    "stock": 10,
+    "isFeatured": true,
+    "images": [
+      "/uploads/catalogues/image-1778523636415.png"
+    ],
+    "createdAt": "2026-05-11T18:20:36.501Z"
+  },
+  {
+    "_id": "1778523636501dfjhu",
+    "name": "KIT PIN",
+    "partNumber": "15045005AA",
+    "description": "KIT PIN",
+    "price": 800,
+    "category": "Transmission",
+    "brand": "FarmNex",
+    "stock": 10,
+    "isFeatured": true,
+    "images": [
+      "/uploads/catalogues/image-1778523636415.png"
+    ],
+    "createdAt": "2026-05-11T18:20:36.501Z"
+  },
+  {
+    "_id": "17785236365018c0it",
+    "name": "KIT LEVER",
+    "partNumber": "15045001AA",
+    "description": "KIT LEVER",
+    "price": 444,
+    "category": "Transmission",
+    "brand": "FarmNex",
+    "stock": 10,
+    "isFeatured": true,
+    "images": [
+      "/uploads/catalogues/image-1778523636415.png"
+    ],
+    "createdAt": "2026-05-11T18:20:36.501Z"
+  },
+  {
+    "_id": "1778398994834nd5xz",
+    "name": "KIT POSITION LEVER ",
+    "partNumber": "15044004AA",
+    "description": "KIT POSITION LEVER ",
+    "price": 989,
+    "category": "Hydraulic",
+    "brand": "FarmNex",
+    "stock": 10,
+    "isFeatured": true,
+    "images": [
+      "/uploads/catalogues/image-1778398994770.png"
+    ],
+    "createdAt": "2026-05-10T07:43:14.834Z"
+  },
+  {
+    "_id": "1778398994834i8ga9",
+    "name": "KIT QUADRANT WITH FRICTION",
+    "partNumber": "15044002AA",
+    "description": "KIT QUADRANT WITH FRICTION",
+    "price": 878,
+    "category": "Hydraulic",
+    "brand": "FarmNex",
+    "stock": 10,
+    "isFeatured": true,
+    "images": [
+      "/uploads/catalogues/image-1778398994770.png"
+    ],
+    "createdAt": "2026-05-10T07:43:14.834Z"
+  },
+  {
+    "_id": "17783989948341nnkz",
+    "name": "CONTROL VALVE ASSY",
+    "partNumber": "15044001AA",
+    "description": "CONTROL VALVE ASSY.",
+    "price": 767,
+    "category": "Hydraulic",
+    "brand": "FarmNex",
+    "stock": 10,
+    "isFeatured": true,
+    "images": [
+      "/uploads/catalogues/image-1778398994770.png"
+    ],
+    "createdAt": "2026-05-10T07:43:14.834Z"
+  },
+  {
+    "_id": "17783989948341ugcq",
+    "name": "KIT CAMSHAFT",
+    "partNumber": "15044003AA",
+    "description": "KIT CAMSHAFT",
+    "price": 567,
+    "category": "Hydraulic",
+    "brand": "FarmNex",
+    "stock": 10,
+    "isFeatured": true,
+    "images": [
+      "/uploads/catalogues/image-1778398994770.png"
+    ],
+    "createdAt": "2026-05-10T07:43:14.834Z"
+  },
+  {
+    "name": "Steering Wheel",
+    "category": "Body & Chassis",
+    "price": "1434",
+    "stock": "10",
+    "description": "Sonalika Tractor Genuine Steering Wheel, Grove Type | 10007586B",
+    "isFeatured": true,
+    "images": [
+      "/uploads/products/image-1778396812975.png"
+    ],
+    "_id": "1778396823094",
+    "createdAt": "2026-05-10T07:07:03.094Z"
+  },
+  {
+    "name": "Fine Diesel Filter Cartridge 0.6ltr ",
+    "category": "Maintenance",
+    "price": "385",
+    "stock": "10",
+    "description": "Sonalika Tractor Genuine Fine Diesel Filter Cartridge 0.6ltr (500hour) For Latest Model Tractor\n",
+    "isFeatured": true,
+    "images": [
+      "/uploads/products/image-1778395444345.png"
+    ],
+    "_id": "1778395454366",
+    "createdAt": "2026-05-10T06:44:14.366Z"
+  },
+  {
+    "name": "Bosch Diesel Filter ",
+    "category": "Maintenance",
+    "price": "454",
+    "stock": "10",
+    "description": "Sonalika Tractor Bosch Diesel Filter Assembly For Latest Model | F 002 H20 364",
+    "isFeatured": true,
+    "images": [
+      "/uploads/products/image-1778394912296.png"
+    ],
+    "_id": "1778394922328",
+    "createdAt": "2026-05-10T06:35:22.328Z"
+  },
+  {
+    "name": "Back tyre",
+    "category": "Tyres & Wheels",
+    "price": "5500",
+    "stock": "55",
+    "description": "back tractor tyre",
+    "isFeatured": true,
+    "images": [
+      "/uploads/products/image-1778394034388.jpeg"
+    ],
+    "_id": "1778394044466",
+    "createdAt": "2026-05-10T06:20:44.466Z"
   },
   {
     "_id": "1",
@@ -21,7 +205,10 @@
     "stock": 15,
     "description": "High-performance piston kit for Mahindra tractors.",
     "brand": "Mahindra",
-    "images": []
+    "isFeatured": true,
+    "images": [
+      "/uploads/products/engine_piston_kit.png"
+    ]
   },
   {
     "_id": "2",

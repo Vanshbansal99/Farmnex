@@ -1,47 +1,48 @@
 const express = require('express');
 const router = express.Router();
-const { getCatalogues, createCatalogue } = require('../controllers/catalogueController');
+const { getCatalogues, createCatalogue, deleteCatalogue } = require('../controllers/catalogueController');
 const { protect, admin } = require('../middleware/authMiddleware');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const { upload: cloudinaryUpload } = require('../config/cloudinary');
 
-// Set up multer for catalogue image uploads
-const storage = multer.diskStorage({
-    destination(req, file, cb) {
-        const dir = 'uploads/catalogues/';
-        // Ensure directory exists
-        if (!fs.existsSync(dir)){
-            fs.mkdirSync(dir, { recursive: true });
+// Hybrid Storage Strategy: Use Cloudinary if keys exist, else use Local Storage
+let upload;
+if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
+    upload = cloudinaryUpload;
+} else {
+    // Set up local multer for catalogue image uploads (Development Fallback)
+    const storage = multer.diskStorage({
+        destination(req, file, cb) {
+            const dir = 'uploads/catalogues/';
+            if (!fs.existsSync(dir)){
+                fs.mkdirSync(dir, { recursive: true });
+            }
+            cb(null, dir);
+        },
+        filename(req, file, cb) {
+            cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
         }
-        cb(null, dir);
-    },
-    filename(req, file, cb) {
-        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
-    }
-});
+    });
 
-function checkFileType(file, cb) {
-    const filetypes = /jpg|jpeg|png|webp/;
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
-
-    if (extname && mimetype) {
-        return cb(null, true);
-    } else {
-        cb('Images only!');
-    }
+    upload = multer({
+        storage,
+        fileFilter: function (req, file, cb) {
+            const filetypes = /jpg|jpeg|png|webp/;
+            const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+            const mimetype = filetypes.test(file.mimetype);
+            if (extname && mimetype) {
+                cb(null, true);
+            } else {
+                cb('Images only!');
+            }
+        }
+    });
 }
-
-const upload = multer({
-    storage,
-    fileFilter: function (req, file, cb) {
-        checkFileType(file, cb);
-    }
-});
 
 router.route('/')
     .get(getCatalogues)
     .post(protect, admin, upload.single('image'), createCatalogue);
+
+router.route('/:id')
+    .delete(protect, admin, deleteCatalogue);
 
 module.exports = router;
